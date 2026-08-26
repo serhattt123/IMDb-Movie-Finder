@@ -4,6 +4,7 @@ Given a movie title, finds similar movies based on:
     1) genre overlap   
     2) IMDb rating closeness
     3) release year closeness
+    4) Crew of the movie
 """
 
 import numpy as np
@@ -30,13 +31,25 @@ def jaccard_similarity(set_a, set_b):
         return intersection / union
 
 
+def crew_id_set(directors_string, writers_string):
+    """
+    Combine director + writer ids into a single set.
+    """
+    ids = set()
+    for s in (directors_string, writers_string):
+        if not pd.isna(s):
+            ids.update(x.strip() for x in s.split(','))
+    return ids
+
+
 def recommend_movies(movies_df, title, top_n=10,
-                     genre_weight=0.60, rating_weight=0.30, year_weight=0.10,
-                     year_decay=15, min_votes=1000):
+                     genre_weight=0.45, rating_weight=0.35, year_weight=0.05,
+                     crew_weight=0.15, year_decay=15, min_votes=1000):
     matches = movies_df[
         movies_df['primaryTitle'].str.lower() == title.strip().lower()]
 
     if matches.empty:
+
         # fallback in case of a typo or a shortened title
         matches = movies_df[
             movies_df['primaryTitle'].str.lower().str.contains(
@@ -75,11 +88,20 @@ def recommend_movies(movies_df, title, top_n=10,
     year_diff = (target_year - candidates['startYear']).abs()
     candidates['year_sim'] = np.exp(-year_diff / year_decay)
 
+    target_crew = crew_id_set(target['directors'], target['writers'])
+
+    candidate_crew_sets = candidates.apply(
+        lambda row: crew_id_set(row['directors'], row['writers']), axis=1)
+    candidates['crew_sim'] = candidate_crew_sets.apply(
+        lambda c: jaccard_similarity(target_crew, c))
+
+
 # combine into one score
     candidates['score'] = (
         genre_weight * candidates['genre_sim'] +
         rating_weight * candidates['rating_sim'] +
-        year_weight * candidates['year_sim']
+        year_weight * candidates['year_sim'] +
+        crew_weight * candidates['crew_sim']
     )
 
     result = candidates.sort_values(
@@ -90,3 +112,4 @@ def recommend_movies(movies_df, title, top_n=10,
         'primaryTitle', 'genres', 'averageRating', 'startYear',
         'numVotes', 'genre_sim', 'rating_sim', 'year_sim', 'score'
     ]]
+
