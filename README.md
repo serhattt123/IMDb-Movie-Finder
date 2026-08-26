@@ -16,6 +16,7 @@ The project was developed as a practical way to learn and apply data cleaning, d
   * Runtime
   * Release year
   * Minimum number of votes
+  * Crewmembers
 * Sort results by rating and number of votes
 * Display the top matching movies
 * Analyze the relationship between IMDb ratings and number of votes
@@ -36,6 +37,7 @@ This project uses the official IMDb datasets:
 
 * `title.basics.tsv.gz`
 * `title.ratings.tsv.gz`
+* `title.crew.tsv.gz`
 
 The datasets can be downloaded from the IMDb datasets page:
 
@@ -51,6 +53,7 @@ IMDb-Movie-Finder/
 ├── data/
 │   ├── title.basics.tsv.gz
 │   └── title.ratings.tsv.gz
+│   └── title.crew.tsv.gz
 │
 ├── main.py
 ├── MovieFinderFilter.py
