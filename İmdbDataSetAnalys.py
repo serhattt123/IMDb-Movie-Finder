@@ -20,6 +20,13 @@ ratings = pd.read_csv(
     sep="\t",
     na_values="\\N"
 )
+
+Crew = pd.read_csv(
+    DATA_DIR / "title.crew.tsv.gz",
+    sep="\t",
+    na_values="\\N"
+)
+
 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
 # print(basics.info())
@@ -44,6 +51,7 @@ basics = basics.dropna(subset=["primaryTitle"])
 # print(ratings.isna().sum()) #There is no NaN data in ratings
 
 CombineData = basics.merge(ratings, on="tconst")  # merge the datasets
+CombineData = CombineData.merge(Crew, on="tconst")
 
 # print(basics["titleType"].value_counts(normalize=True) * 100)
 
@@ -127,14 +135,20 @@ else:
     )
 
 
-movie_name = input("Write a movie for similar recommendations: ")
-recommendations = recommend_movies(Movies, movie_name, top_n=10)
+while True:
+    movie_name = input("Write a movie for similar recommendations (press Enter to quit): ").strip()
 
-if recommendations.empty:
-    print("Couldnt Find a Match.")
-else:
-    print("\n--- Recommendations ---")
-    print(recommendations.to_string(index=False))
+    if not movie_name:
+        break
+
+    recommendations = recommend_movies(Movies, movie_name, top_n=10)
+
+    if recommendations.empty:
+        print("Couldnt Find a Match.")
+    else:
+        print("\n--- Recommendations ---")
+        print(recommendations.to_string(index=False))
 
 
 plt.show()
+
